@@ -1,5 +1,6 @@
 import sys
 from functools import reduce
+from math import inf
 
 RIGHT = 'R'
 LEFT = 'L'
@@ -128,6 +129,73 @@ def closest_manhattan_distance(first_wire, second_wire):
     return min_distance
 
 
+def distance_point_line(point, line):
+    pt_a, pt_b = line
+    x1, y1 = pt_a
+    x2, y2 = pt_b
+
+    x, y = point
+
+    if x1 == x2:
+        if y == y1 and y == y2:
+            # vertical
+            # we need to check if y is in the bounds
+            y_bounds = [y1, y2]
+            y_bounds.sort()
+            y_lower, y_upper = y_bounds
+            if y >= y_lower and y <= y_upper:
+                return True, abs(y-y1)
+        return False, abs(y1-y2)
+    else:
+        # y1 == y2
+        if x == x1 and x == x2:
+            # horizontal
+            # we need to check if x is in the bounds
+            x_bounds = [x1, x2]
+            x_bounds.sort()
+            x_lower, x_upper = x_bounds
+            if x >= x_lower and x <= x_upper:
+                return True, abs(x - x1)
+        return False, abs(x1-x2)
+    # point is not on line
+    # this should not happen
+
+
+def compute_shortest_distance_to_intersection(first_wire, second_wire):
+    first_wire_coordinates = get_coordinates(first_wire)
+    second_wire_coordinates = get_coordinates(second_wire)
+
+    first_lines = get_lines(first_wire_coordinates)
+    first_lines.pop(0)
+    second_lines = get_lines(second_wire_coordinates)
+    second_lines.pop(0)
+    intersections = get_all_intersections(first_lines, second_lines)
+
+    first_lines = get_lines(first_wire_coordinates)
+    second_lines = get_lines(second_wire_coordinates)
+
+    min_distance = inf
+    print(intersections)
+    for intersection in intersections:
+        distance_traveled_by_wire = 0
+        for line in first_lines:
+            on_line, distance_traveled = distance_point_line(
+                intersection, line)
+
+            distance_traveled_by_wire += distance_traveled
+            if on_line:
+                break
+        for line in second_lines:
+            on_line, distance_traveled = distance_point_line(
+                intersection, line)
+            distance_traveled_by_wire += distance_traveled
+            if on_line:
+                break
+        if distance_traveled_by_wire < min_distance:
+            min_distance = distance_traveled_by_wire
+    return min_distance
+
+
 def run_tests():
     def test_1():
         first_wire = ['R75', 'D30', 'R83', 'U83',
@@ -150,15 +218,40 @@ def run_tests():
         assert closest_manhattan_distance(first_wire, second_wire) == 135
 
 
+def run_tests_part_b():
+    # def test_1():
+    #     first_wire = ['R75', 'D30', 'R83', 'U83',
+    #                   'L12', 'D49', 'R71', 'U7', 'L72']
+    #     second_wire = ['U62', 'R66', 'U55', 'R34', 'D71', 'R55', 'D58', 'R83']
+    #     print(compute_shortest_distance_to_intersection(first_wire, second_wire))
+    # test_1()
+
+    def test_2():
+        first_wire = ['R8', 'U5', 'L5', 'D3']
+        second_wire = ['U7', 'R6', 'D4', 'L4']
+        print(compute_shortest_distance_to_intersection(first_wire, second_wire))
+    test_2()
+
+    # def test_3():
+    #     first_wire = ['R98', 'U47', 'R26', 'D63', 'R33',
+    #                   'U87', 'L62', 'D20', 'R33', 'U53', 'R51']
+    #     second_wire = ['U98', 'R91', 'D20', 'R16',
+    #                    'D67', 'R40', 'U7', 'R15', 'U6', 'R7']
+    #     assert closest_manhattan_distance(first_wire, second_wire) == 135
+    # test_3()
+
+
 if __name__ == '__main__':
     # let's make sure our algorithm still works
-    run_tests()
+    # run_tests()
 
-    f = open('manhattan.txt')
-    first_wire_coordinates, second_wire_coordinates = f.read().splitlines()
-    first_wire = first_wire_coordinates.split(',')
-    second_wire = second_wire_coordinates.split(',')
+    run_tests_part_b()
 
-    print(closest_manhattan_distance(first_wire, second_wire))
+    # f = open('manhattan.txt')
+    # first_wire_coordinates, second_wire_coordinates = f.read().splitlines()
+    # first_wire = first_wire_coordinates.split(',')
+    # second_wire = second_wire_coordinates.split(',')
 
-    f.close()
+    # print(closest_manhattan_distance(first_wire, second_wire))
+
+    # f.close()
